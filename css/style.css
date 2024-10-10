@@ -1,0 +1,12 @@
+body{
+    overflow: hidden;
+}
+
+#mathFieldSpan{
+    border: 1rem solid black;
+}
+
+#replaceBtn{
+    position: absolute;
+    bottom:0;
+}

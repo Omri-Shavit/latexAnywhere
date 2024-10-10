@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "MathQuill Anywhere (Unofficial)",
+  "description": "Opens a MathQuill LaTeX editor in a separate window.",
+  "version": "1.0",
+  "permissions": ["storage", "windows"],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "open-popup-window": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L"
+      },
+      "description": "Open new MathQuill LaTeX Editor window."
+    }
+  },
+  "action": {
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    },
+    "default_title": "Open new MathQuill LaTeX Editor window"
+  }
+}
