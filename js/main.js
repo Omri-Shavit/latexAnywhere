@@ -1,6 +1,6 @@
 async function main() {
     const uuid = (await chrome.windows.getCurrent()).id;
-    window.uuid = uuid; // TODO: delete
+    window.uuid = uuid; // for debugging
 
     // get HTML components
     const editorTextArea = document.getElementById("editorTextArea")
@@ -8,9 +8,23 @@ async function main() {
     const replaceBtn = document.getElementById("replaceBtn");
 
     // button
-    replaceBtn.addEventListener('click', () => { // TODO
+    function replaceSelection(){
         const code = editor.getValue();
-    });
+        chrome.runtime.sendMessage({
+            msg:"replaceSelection",
+            target:"background",
+            data:{
+                id: uuid,
+                replacementString: code
+            }
+        })
+    }
+    replaceBtn.addEventListener('click', replaceSelection);
+    document.addEventListener("keydown", (e)=>{
+        if (e.key==="Enter" && e.ctrlKey){
+            replaceSelection();
+        }
+    })
 
     // CodeMirror
     const editor = CodeMirror.fromTextArea(editorTextArea, {

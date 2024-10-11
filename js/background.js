@@ -1,4 +1,7 @@
+// window id maps
 const tabIdToLatexEditorWindowId = new Map();
+const latexEditorWindowIdToTabId = new Map();
+// for checking if editor is ready to communicate
 const editorWindowIdToIsReadyPromise = new Map();
 
 /**
@@ -35,12 +38,15 @@ async function getTheExistingAssociatedLatexEditorWindowOrCreateANewOne(tabId){
         focused: true
     });
 
+    // create a promise that only gets resolved when the latex editor window is ready for communication, then await it.
     let readyResolver; // function to be executed by message listener when this editor is ready to accept requests
     const readyPromise = new Promise((resolve)=>{readyResolver = resolve});
     editorWindowIdToIsReadyPromise.set(editorWindow.id, {readyPromise: readyPromise, readyResolver: readyResolver});
-    tabIdToLatexEditorWindowId.set(tabId, editorWindow.id);
-    const messageHeardBack = await editorWindowIdToIsReadyPromise.get(editorWindow.id).readyPromise;
-    // console.log(messageHeardBack);
+    await editorWindowIdToIsReadyPromise.get(editorWindow.id).readyPromise;
+
+    // record the id of the new latex editor allocated to the specified tab id in id maps
+    tabIdToLatexEditorWindowId.set(tabId, editorWindow.id); // for communication to editor from tab
+    latexEditorWindowIdToTabId.set(editorWindow.id, tabId); // for communication to tab from editor
     return editorWindow;
 }
 
@@ -71,20 +77,11 @@ async function handleOpenLatexEditorWindowCommand(){
     await chrome.windows.update(editorWindow.id, {focused:true});
 
     // run updateEditorGivenUserSelection() in the editor with userSelection as argument
-    // TODO: this is temporary. delete this
     await chrome.runtime.sendMessage({
         msg: "updateEditorGivenUserSelection",
         target: editorWindow.id,
         data: userTextSelection
     });
-    // // TODO set the state, no edit history and initialized
-    // await chrome.runtime.sendMessage({
-    //     msg: "setState",
-    //     target: editorWindow.id,
-    //     data: { // TODO
-    //
-    //     }
-    // })
 }
 
 /**
@@ -103,7 +100,7 @@ function getUserTextSelection(){
     const isTheUserEditingATextField = activeElement && (
         activeElement.tagName === 'INPUT' ||
         activeElement.tagName === 'TEXTAREA' ||
-        activeElement.isContentEditable
+        activeElement.contentEditable === 'true' || activeElement.contentEditable === 'inherit'
     );
     return {
         isTheUserEditingATextField: isTheUserEditingATextField,
@@ -122,12 +119,23 @@ chrome.commands.onCommand.addListener(async (command)=>{
     await handleOpenLatexEditorWindowCommand();
 });
 
-chrome.runtime.onMessage.addListener((message)=>{
+chrome.runtime.onMessage.addListener(async (message)=>{
     if(message.target !== "background"){
         return; // ignore messages not intended for this window
     }
     if(message.msg === "ready"){ // editor window signaled that it is now ready to take requests
         editorWindowIdToIsReadyPromise.get(message.data.id).readyResolver(`editor ${message.data.id} is ready`);
+        return;
+    }
+    if(message.msg === "replaceSelection"){
+        // TODO close editor when tab is closed
+        const targetTabId = latexEditorWindowIdToTabId.get(message.data.id);
+        await chrome.scripting.executeScript({
+            target: {tabId: targetTabId},
+            function: replaceSelection,
+            args: [message.data.replacementString]
+        });
+        return;
     }
 })
 
@@ -136,5 +144,19 @@ chrome.runtime.onMessage.addListener((message)=>{
  * @param replacementString
  */
 function replaceSelection(replacementString){
-    // TODO
+    // in case we're editing a textarea
+    const tagName = document.activeElement.tagName;
+    if (tagName === "TEXTAREA" || tagName === "INPUT"){
+        const textarea = document.activeElement;
+        const start = textarea.selectionStart, end = textarea.selectionEnd;
+
+        const originalText = textarea.value;
+        textarea.value = originalText.substring(0, start) + replacementString + originalText.substring(end);
+        textarea.setSelectionRange(start, start + replacementString.length);
+    } else { // content editable div
+        const selection = window.getSelection();
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(document.createTextNode(replacementString));
+    }
 }
