@@ -2,11 +2,15 @@ body{
     overflow: hidden;
 }
 
-#mathFieldSpan{
-    border: 1rem solid black;
-}
+/*#mathFieldSpan{*/
+/*    border: 1rem solid black;*/
+/*}*/
 
 #replaceBtn{
     position: absolute;
     bottom:0;
+}
+
+.CodeMirror-scroll{
+    border: solid black 1px;
 }

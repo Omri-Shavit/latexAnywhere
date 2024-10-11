@@ -3,30 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <title>MathQuill Anywhere</title>
-  <!--Bootstrap-->
+  <!--CSS (Bootstrap, MathQuill, CodeMirror, Custom)-->
   <link rel="stylesheet" href="css/bootstrap.min.css">
-  <!--Mathquill-->
   <link rel="stylesheet" type="text/css" href="css/mathquill.css" />
-  <!--CodeMirror-->
   <link rel="stylesheet" href="css/codemirror.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="container pt-3">
+  <!--MathQuill LaTeX Editor-->
   <div class="row">
-    <div class="col-12 text-center">
+    <div class="col-12">
       <h4>Write math in the box below:</h4>
       <p><span id="mathFieldSpan"></span></p>
     </div>
   </div>
-  <div class="row">
+  <!--CodeMirror Code Editor-->
+  <div class="row border-1 border-black">
     <div class="col-12">
-      <h4 class="text-center">LaTeX code appears here:</h4>
+      <h4>LaTeX code appears here:</h4>
       <label for="editorTextArea"></label>
       <textarea id="editorTextArea"></textarea>
     </div>
   </div>
+  <!--Replace Button-->
   <div class="row">
     <div class="d-grid">
-      <button id="replaceBtn" class="btn btn-primary btn-lg fixed-bottom d-block w-100 rounded-0">Replace</button>
+      <button id="replaceBtn" class="btn btn-primary btn-lg fixed-bottom d-block w-100 rounded-0">Replace Selection</button>
     </div>
   </div>
 
@@ -37,6 +39,8 @@
   <!--Codemirror scripts-->
   <script src="js/codemirror.js"></script>
   <script src="js/stex.js"></script>
-  <script src="js/popup.js"></script>
+
+  <!--Main script-->
+  <script src="js/main.js"></script>
 </body>
 </html>
